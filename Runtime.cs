@@ -45,6 +45,12 @@ namespace IronLizard
                 }
             }
 
+            keywords.Reverse();
+
+            var rArgs = args.ToArray();
+            for (int i = 0; i < rArgs.Length; i++)
+                rArgs[i] = keywords.Count - rArgs[i] - 1;
+
             ;
         }
 

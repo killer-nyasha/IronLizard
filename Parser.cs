@@ -33,10 +33,10 @@ namespace IronLizard
 
         Keyword Comma()
         {
-            if (ParserStack.Count > 0 && ParserStack.Peek().Type != KeywordType.LeftBracket)
+            if (ParserStack.Count > 0 && ParserStack.Peek().Type != KeywordType.LeftBracket /*&& ParserStack.Peek().Text[0] != 'i'*/)
                 return ParserStack.Pop();
             else
-                endLine = false;
+                comma = false;
                 return null;
         }
 
@@ -44,6 +44,9 @@ namespace IronLizard
         {
             if (ParserStack.Count == 0)
                 return false;
+
+           // if (ParserStack.Peek().Text[0] == 'i')
+           //     return false;
 
             if (ParserStack.Peek() is Operator otherOperator)
             {
@@ -85,7 +88,7 @@ namespace IronLizard
             else
                 throw new Exception("Bracket wasn't closed");
 
-            return kwtoken;
+            return null /*kwtoken*/;
         }
 
         KeywordType lastKeywordType = KeywordType.Prefix;
@@ -141,10 +144,11 @@ namespace IronLizard
             else if (kwtoken.Type == KeywordType.LeftBracket)
             {
                 ParserStack.Push(kwtoken);
-                return kwtoken;
+                return null /*kwtoken*/;
             }
             else if (kwtoken.Type == KeywordType.RightBracket)
             {
+                endBrackets = true;
                 return EndBrackets();
             }
             else

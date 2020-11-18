@@ -54,9 +54,13 @@ namespace IronLizard
             {
                 if (keywordText[0] == '(')
                 {
+                    if (!hasSpacesPre)
+                        toReturn.Enqueue(callKeyword);
+                    else
+                    { int j = 111; }
+
                     hasSpacesPost = true;
                     //if (lastKeywordType == KeywordType.Simple)
-                        toReturn.Enqueue(callKeyword);
                 }
                 else if (keywordText[0] == ')')
                     hasSpacesPost = false;

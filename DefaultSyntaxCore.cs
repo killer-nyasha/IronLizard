@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace IronLizard
 {
@@ -16,6 +17,30 @@ namespace IronLizard
             Console.WriteLine(r.stack.Pop());
         }
 
+        static Stack<int> elseStack = new Stack<int>();
+
+        static void Else(Runtime r)
+        {
+            int k = r.args.Pop();
+
+            elseStack.Push(k);
+
+            //var b = r.stack.Pop();
+            //var a = r.stack.Pop();
+            //r.stack.Push((int.Parse(b) + int.Parse(a)).ToString());
+        }
+
+        static void If(Runtime r)
+        {
+            int k = r.args.Pop();
+
+            elseStack.Push(k);
+
+            //var b = r.stack.Pop();
+            //var a = r.stack.Pop();
+            //r.stack.Push((int.Parse(b) + int.Parse(a)).ToString());
+        }
+
         public DefaultSyntaxCore()
         {
             TextChars.Add('_');
@@ -28,8 +53,11 @@ namespace IronLizard
             Keywords.Add(new Operator(KeywordType.Postfix, "+", Plus));
             Keywords.Add(new Operator(KeywordType.Postfix, "++", Plus));
             Keywords.Add(new Operator(KeywordType.Prefix, "print", Print, -100));
-            Keywords.Add(new Operator(KeywordType.Prefix, "if", Print, -500));
-            Keywords.Add(new Operator(KeywordType.Prefix, "else", Print, -500));
+            Keywords.Add(new Operator(KeywordType.Prefix, "if", If, -500));
+            Keywords.Add(new Operator(KeywordType.Prefix, "iff", If, -500));
+            Keywords.Add(new Operator(KeywordType.Prefix, "else", Else, -600));
+            Keywords.Add(new Operator(KeywordType.Prefix, "?", Print, -500));
+            Keywords.Add(new Operator(KeywordType.Prefix, ":", Print, -600));
 
             Keywords.Add(new Keyword(KeywordType.LeftBracket, "("));
             Keywords.Add(new Keyword(KeywordType.RightBracket, ")"));
