@@ -44,6 +44,11 @@
         {
             return Type.ToString()/*.Remove(1)*/ + "__" + Text;
         }
+
+        public Keyword Clone()
+        {
+            return (Keyword)MemberwiseClone();
+        }
     }
 
     public enum Associativity
@@ -52,7 +57,7 @@
         Right
     }
 
-    public delegate void OnMeetDelegate(Runtime runtime);
+    public delegate void OnMeetDelegate();
 
     public class Operator : Keyword
     {
@@ -65,6 +70,25 @@
             Priority = priority;
             Associativity = associativity;
             OnMeet = onMeet;
+        }
+
+        public override string ToString()
+        {
+            return Type.ToString()/*.Remove(1)*/ + "__" + Text;
+        }
+    }
+
+    public class NestedOperator : Operator
+    {
+        public int Nesting;
+        public NestedOperator(KeywordType type, string text, OnMeetDelegate onMeet, int nesting, int priority = 0, Associativity associativity = Associativity.Left) : base(type, text, onMeet, priority, associativity)
+        {
+            Nesting = nesting;
+        }
+
+        public override string ToString()
+        {
+            return Type.ToString()/*.Remove(1)*/ + "__" + Text + $"_[{Nesting}]";
         }
     }
 

@@ -17,13 +17,24 @@ namespace IronLizard
             Console.WriteLine(r.stack.Pop());
         }
 
-        static Stack<int> elseStack = new Stack<int>();
+        //static Stack<int> elseStack = new Stack<int>();
 
         static void Else(Runtime r)
         {
             int k = r.args.Pop();
 
-            elseStack.Push(k);
+            //elseStack.Push(k);
+
+            //var b = r.stack.Pop();
+            //var a = r.stack.Pop();
+            //r.stack.Push((int.Parse(b) + int.Parse(a)).ToString());
+        }
+
+        static void Elif(Runtime r)
+        {
+            int k = r.args.Pop();
+
+            //elseStack.Push(k);
 
             //var b = r.stack.Pop();
             //var a = r.stack.Pop();
@@ -34,7 +45,7 @@ namespace IronLizard
         {
             int k = r.args.Pop();
 
-            elseStack.Push(k);
+            //elseStack.Push(k);
 
             //var b = r.stack.Pop();
             //var a = r.stack.Pop();
@@ -53,9 +64,10 @@ namespace IronLizard
             Keywords.Add(new Operator(KeywordType.Postfix, "+", Plus));
             Keywords.Add(new Operator(KeywordType.Postfix, "++", Plus));
             Keywords.Add(new Operator(KeywordType.Prefix, "print", Print, -100));
-            Keywords.Add(new Operator(KeywordType.Prefix, "if", If, -500));
-            Keywords.Add(new Operator(KeywordType.Prefix, "iff", If, -500));
-            Keywords.Add(new Operator(KeywordType.Prefix, "else", Else, -600));
+            Keywords.Add(new NestedOperator(KeywordType.Prefix, "if", If, 0, -500));
+            //Keywords.Add(new Operator(KeywordType.Prefix, "iff", If, -500));
+            Keywords.Add(new NestedOperator(KeywordType.Prefix, "else", Else, 0, -500));
+            Keywords.Add(new NestedOperator(KeywordType.Prefix, "elif", Elif, 0, -500));
             Keywords.Add(new Operator(KeywordType.Prefix, "?", Print, -500));
             Keywords.Add(new Operator(KeywordType.Prefix, ":", Print, -600));
 

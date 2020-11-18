@@ -93,6 +93,8 @@ namespace IronLizard
 
         KeywordType lastKeywordType = KeywordType.Prefix;
 
+        int NestingIndex = 0;
+
         public Keyword GetNext()
         {
             if (endLine)
@@ -120,6 +122,13 @@ namespace IronLizard
 
             if (kwtoken is Operator operatorToken)
             {
+                if (kwtoken is NestedOperator)
+                {
+                    kwtoken = kwtoken.Clone();
+                    ((NestedOperator)kwtoken).Nesting = NestingIndex;
+                    operatorToken = (Operator)kwtoken;
+                }
+
                 lastKeywordType = operatorToken.Type;
 
                 if (kwtoken.Type == KeywordType.Simple)
@@ -143,11 +152,13 @@ namespace IronLizard
             }
             else if (kwtoken.Type == KeywordType.LeftBracket)
             {
+                NestingIndex++;
                 ParserStack.Push(kwtoken);
                 return null /*kwtoken*/;
             }
             else if (kwtoken.Type == KeywordType.RightBracket)
             {
+                NestingIndex--;
                 endBrackets = true;
                 return EndBrackets();
             }
