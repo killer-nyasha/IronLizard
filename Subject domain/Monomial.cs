@@ -34,10 +34,15 @@ namespace IronLizard
         }
     }
 
-    public struct Element
+    public struct Element : IComparable<Element>
     {
         public int Variable;
         public int Pow;
+
+        public int CompareTo(Element el)
+        {
+            return (Variable - el.Variable) /** 65536 + (Pow - el.Pow)*/;
+        }
 
         public override bool Equals(object obj)
         {
@@ -48,33 +53,41 @@ namespace IronLizard
 
         public override int GetHashCode()
         {
-            return Variable * 65536 + Pow;
+            return Variable /** 65536 + Pow*/;
+        }
+
+        public override string ToString()
+        {
+            return $"{(Pow == 0 ? "" : SolverSyntaxCore.variableNames[Variable]) + (Pow != 1 ? Pow.ToString() : "")}";
         }
     }
 
-    public struct ElementsMul
+    public struct ElementsMul : IComparable<ElementsMul>
     {
         public List<Element> Elements;
-        public double Coef;
+        //public double Coef;
 
         public override bool Equals(object obj)
         {
             if (obj is ElementsMul el)
-            {
-                if (Elements.Count != el.Elements.Count)
-                    return false;
-
-                Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
-                el.Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
-
-                for (int i = 0; i < Elements.Count; i++)
-                {
-                    if (Elements[i].GetHashCode() != el.Elements[i].GetHashCode())
-                        return false;
-                }
-                return true;
-            }
+                return CompareTo(el) == 0;
             else return false;
+        }
+
+        public int CompareTo(ElementsMul el)
+        {
+            //if (Elements.Count != el.Elements.Count)
+            //    return false;
+
+            Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+            el.Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+
+            for (int i = 0; i < Elements.Count; i++)
+            {
+                if (Elements[i].GetHashCode() != el.Elements[i].GetHashCode())
+                    return Elements[i].GetHashCode() - el.Elements[i].GetHashCode();
+            }
+            return 0;
         }
 
         public override int GetHashCode()
@@ -85,45 +98,180 @@ namespace IronLizard
                 hash += Elements[i].GetHashCode();
             return hash;
         }
+
+        public override string ToString()
+        {
+            return Elements.Aggregate($"", (x,y) => x + y.ToString() );
+        }
     }
 
-    public struct Monomial
+    public struct Monomial : IComparable<Monomial>
     {
-        public Dictionary<ElementsMul, double> Variables;
+        //public Dictionary<ElementsMul, double> 
+        ElementsMul Variables;
+        public double Coef;
 
         public Monomial(int id, double value)
         {
-            Variables = new Dictionary<ElementsMul, double>();
-            Variables.Add(new ElementsMul { Elements = new List<Element>() { new Element() { Variable = id, Pow = 0 } }, Coef = value }, value);
+            Variables = new ElementsMul { Elements = new List<Element>() { new Element() { Variable = id, Pow = 1 } } };
+            Coef = value;
         }
 
         public Monomial(double value)
         {
-            Variables = new Dictionary<ElementsMul, double>();
-            Variables.Add(new ElementsMul { Elements = new List<Element>() { new Element() { Variable = 0, Pow = 0 } }, Coef = value }, value);
+            Variables = new ElementsMul { Elements = new List<Element>() { new Element() { Variable = 0, Pow = 0 } } };
+            Coef = value;
         }
+
+        public int CompareTo(Monomial el)
+        {
+            //if (Elements.Count != el.Elements.Count)
+            //    return false;
+
+            return Variables.CompareTo(el.Variables);
+
+            //Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+            //el.Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+
+            //for (int i = 0; i < Elements.Count; i++)
+            //{
+            //    if (Elements[i].GetHashCode() != el.Elements[i].GetHashCode())
+            //        return Elements[i].GetHashCode() - el.Elements[i].GetHashCode();
+            //}
+            //return 0;
+        }
+
 
         public static Monomial operator*(Monomial a, Monomial b)
         {
             Monomial c = new Monomial();
+            c.Coef = a.Coef * b.Coef;
 
-            if (b.Variables.Count > a.Variables.Count)
+            if (b.Variables.Elements.Count > a.Variables.Elements.Count)
             {
                 Monomial d = a;
                 a = b;
                 b = d;
             }
 
-            c.Variables = a.Variables;
+            a.Variables.Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+            b.Variables.Elements.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
 
-            foreach (var ai in b.Variables)
+            c.Variables.Elements = new List<Element>(a.Variables.Elements);
+
+            foreach (var ai in b.Variables.Elements)
             {
-                if (c.Variables.ContainsKey(ai.Key))
-                    c.Variables[ai.Key] *= ai.Value;
-                else c.Variables.Add(ai.Key, ai.Value);
+                int aii = a.Variables.Elements.BinarySearch(ai);
+                if (aii >= 0)
+                {
+                    var v = c.Variables.Elements[aii];
+                    v.Pow += ai.Pow;
+                    c.Variables.Elements[aii] = v;
+                }
+                else c.Variables.Elements.Add(ai);
             }
 
             return c;
         }
+
+        public override string ToString()
+        {
+            return (Coef != 1 ? Coef.ToString() : "") + Variables.ToString();
+        }
+
+        public string ToString(double coef)
+        {
+            return coef.ToString() + Variables.ToString();
+        }
     }
+
+    public struct Polynomial
+    {
+        //public Dictionary<ElementsMul, double> 
+        List<Monomial> Terms;
+
+        public Polynomial(int id, double value)
+        {
+            Terms = new List<Monomial>() { new Monomial(id, value) };// new ElementsMul { Elements = new List<Element>() { new Element() { Variable = id, Pow = 1 } } };
+            //Coef = value;
+        }
+
+        public Polynomial(double value)
+        {
+            Terms = new List<Monomial>() { new Monomial(value) };
+            //Coef = value;
+        }
+
+        public static Polynomial operator +(Polynomial a, Polynomial b)
+        {
+            Polynomial c = new Polynomial();
+
+            if (b.Terms.Count > a.Terms.Count)
+            {
+                Polynomial d = a;
+                a = b;
+                b = d;
+            }
+
+            a.Terms.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+            b.Terms.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+
+            c.Terms = new List<Monomial>(a.Terms);
+
+            foreach (var ai in b.Terms)
+            {
+                int aii = a.Terms.BinarySearch(ai);
+                if (aii >= 0)
+                {
+                    var v = c.Terms[aii];
+                    v.Coef += ai.Coef;
+                    c.Terms[aii] = v;
+                }
+                else c.Terms.Add(ai);
+            }
+
+            return c;
+        }
+
+        public static Polynomial operator *(Polynomial a, Polynomial b)
+        {
+            Polynomial c = new Polynomial();
+
+            if (b.Terms.Count > a.Terms.Count)
+            {
+                Polynomial d = a;
+                a = b;
+                b = d;
+            }
+
+            a.Terms.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+            b.Terms.Sort((x, y) => x.GetHashCode() - y.GetHashCode() /*x.Variable + x.Pow) - y.Variable * y.Pow*/);
+
+            c.Terms = new List<Monomial>();
+
+            foreach (var ai in a.Terms)
+                foreach (var bi in b.Terms)
+            {
+                c.Terms.Add(ai * bi);
+
+                //int aii = a.Terms.BinarySearch(ai);
+                //if (aii != -1)
+                //{
+                //    var v = c.Terms[aii];
+                //    v.Coef += ai.Coef;
+                //    c.Terms[aii] = v;
+                //}
+                //else c.Terms.Add(ai);
+            }
+
+            return c;
+        }
+
+
+        public override string ToString()
+        {
+            return Terms.Aggregate($"", (x, y) => x + (y.Coef > 0 ? " + " + y.ToString() : " - " + y.ToString(-y.Coef)));
+        }
+    }
+
 }

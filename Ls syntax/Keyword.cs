@@ -57,7 +57,7 @@
         Right
     }
 
-    public delegate void OnMeetDelegate();
+    public delegate int OnMeetDelegate(int i);
 
     public class Operator : Keyword
     {

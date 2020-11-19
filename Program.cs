@@ -1,4 +1,6 @@
-﻿namespace IronLizard
+﻿using System;
+
+namespace IronLizard
 {
     class Program
     {
@@ -17,9 +19,8 @@
 
             SolverSyntaxCore core = new SolverSyntaxCore();
 
-            Lexer lexer = new Lexer("x*y", core);
+            Lexer lexer = new Lexer("(x + y) * (x + y)", core);
             //12+ 34+5+ if 67+ else
-
 
             Parser parser = new Parser(lexer);
             Runtime runtime = new Runtime(parser);
@@ -27,7 +28,19 @@
             runtime.RunLazy();
 
             SolverSyntaxCore.keywords = runtime.keywords;
-            SolverSyntaxCore.Run();
+
+
+            int iter = (int)1e6;
+
+            DateTime dt = DateTime.Now;
+            for (int i = 1; i < iter; i++)
+            {
+                SolverSyntaxCore.Run();
+            }
+            TimeSpan ts = DateTime.Now - dt;
+
+            Console.WriteLine(ts.TotalMilliseconds);
+            Console.WriteLine(iter / ts.TotalMilliseconds * 1000);
 
             //runtime.Run(false);
         }

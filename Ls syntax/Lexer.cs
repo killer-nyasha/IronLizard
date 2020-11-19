@@ -14,7 +14,7 @@ namespace IronLizard
 
         KeywordType lastKeywordType = KeywordType.Simple;
 
-        Keyword callKeyword = new Operator(KeywordType.Postfix, "__call__", r => { }, -200);
+        Keyword callKeyword = new Operator(KeywordType.Postfix, "__call__", r => r, -200);
         public Keyword endKeyword = new Keyword(KeywordType.Simple, "__end__");
 
         bool hasSpacesPre = true;
